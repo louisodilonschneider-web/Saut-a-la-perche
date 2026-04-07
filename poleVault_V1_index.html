@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PerchePro — Saut à la Perche</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --blue:#1a56db;--blue-dark:#1341b0;--blue-light:#e8f0fe;--blue-mid:#3b7de9;
+    --white:#ffffff;--gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;
+    --gray-300:#cbd5e1;--gray-400:#94a3b8;--gray-600:#475569;--gray-700:#334155;--gray-800:#1e293b;
+    --green:#16a34a;--green-light:#dcfce7;--red:#dc2626;--red-light:#fee2e2;
+    --orange:#ea580c;--orange-light:#fff7ed;--yellow:#ca8a04;--yellow-light:#fefce8;
+    --purple:#7c3aed;--purple-light:#f5f3ff;
+    --shadow-sm:0 1px 3px rgba(0,0,0,.08);--shadow:0 4px 16px rgba(0,0,0,.10);
+    --shadow-lg:0 8px 32px rgba(0,0,0,.13);--radius:10px;--radius-lg:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--white);color:var(--gray-800);min-height:100vh}
+
+  /* NAV */
+  nav{background:var(--blue);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(26,86,219,.18)}
+  .nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center}
+  .nav-brand{color:#fff;font-size:1.2rem;font-weight:700;padding:0 24px;display:flex;align-items:center;gap:8px;border-right:1px solid rgba(255,255,255,.18);white-space:nowrap}
+  .nav-tab{color:rgba(255,255,255,.78);font-size:.93rem;font-weight:500;padding:18px 22px;cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}
+  .nav-tab:hover{color:#fff;background:rgba(255,255,255,.08)}
+  .nav-tab.active{color:#fff;border-bottom-color:#fff;background:rgba(255,255,255,.12)}
+
+  /* LAYOUT */
+  .page{display:none}.page.active{display:block}
+  .container{max-width:1100px;margin:0 auto;padding:30px 20px}
+  .page-title{font-size:1.6rem;font-weight:700;margin-bottom:4px}
+  .page-sub{color:var(--gray-600);font-size:.95rem;margin-bottom:24px}
+
+  /* CARDS */
+  .card{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:22px;box-shadow:var(--shadow-sm);margin-bottom:18px}
+  .card-title{font-size:1rem;font-weight:700;color:var(--blue);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+  /* FORMS */
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+  .form-grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .form-group{display:flex;flex-direction:column;gap:4px}
+  label{font-size:.83rem;font-weight:600;color:var(--gray-700)}
+  .label-hint{font-size:.73rem;font-weight:400;color:var(--gray-400);margin-left:3px}
+  input,select,textarea{border:1.5px solid var(--gray-200);border-radius:7px;padding:8px 11px;font-size:.93rem;font-family:inherit;background:#fff;color:var(--gray-800);transition:border-color .2s;width:100%}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,86,219,.10)}
+  textarea{resize:vertical;min-height:65px}
+  .input-group{display:flex}
+  .input-group input{border-radius:7px 0 0 7px}
+  .input-group .addon{background:var(--gray-100);border:1.5px solid var(--gray-200);border-left:none;border-radius:0 7px 7px 0;padding:8px 10px;font-size:.83rem;color:var(--gray-600);display:flex;align-items:center;white-space:nowrap}
+
+  /* BUTTONS */
+  .btn{display:inline-flex;align-items:center;gap:5px;padding:9px 18px;border-radius:7px;font-size:.9rem;font-weight:600;cursor:pointer;border:none;transition:all .18s}
+  .btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue-dark);transform:translateY(-1px);box-shadow:var(--shadow)}
+  .btn-secondary{background:var(--gray-100);color:var(--gray-700);border:1px solid var(--gray-200)}.btn-secondary:hover{background:var(--gray-200)}
+  .btn-danger{background:var(--red);color:#fff}.btn-danger:hover{background:#b91c1c}
+  .btn-success{background:var(--green);color:#fff}.btn-success:hover{background:#15803d}
+  .btn-warning{background:var(--orange);color:#fff}.btn-warning:hover{background:#c2410c}
+  .btn-sm{padding:5px 11px;font-size:.8rem}.btn-icon{padding:5px 7px}
+
+  /* BADGES */
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:.77rem;font-weight:700}
+  .badge-blue{background:var(--blue-light);color:var(--blue)}
+  .badge-green{background:var(--green-light);color:var(--green)}
+  .badge-red{background:var(--red-light);color:var(--red)}
+  .badge-orange{background:var(--orange-light);color:var(--orange)}
+  .badge-gray{background:var(--gray-100);color:var(--gray-600)}
+  .badge-yellow{background:var(--yellow-light);color:var(--yellow)}
+
+  /* TABLE */
+  .table-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  th{background:var(--blue);color:#fff;font-weight:600;padding:9px 12px;text-align:left}
+  th:first-child{border-radius:8px 0 0 0}th:last-child{border-radius:0 8px 0 0}
+  td{padding:8px 12px;border-bottom:1px solid var(--gray-100);vertical-align:middle}
+  tr:hover td{background:var(--blue-light)}
+  tr:last-child td{border-bottom:none}
+
+  /* CHARTS */
+  .charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+  .chart-card{background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow-sm)}
+  .chart-title{font-size:.88rem;font-weight:700;color:var(--gray-700);margin-bottom:12px}
+  .chart-wrap{position:relative;height:195px}
+
+  /* COMPETITION */
+  .comp-header{background:linear-gradient(135deg,var(--blue) 0%,var(--blue-mid) 100%);color:#fff;border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .comp-header h2{font-size:1.25rem;font-weight:700}
+  .comp-meta{font-size:.85rem;opacity:.85}
+  .height-bar{background:var(--blue);color:#fff;padding:10px 18px;border-radius:8px;margin-bottom:14px;display:flex;align-items:center;gap:14px;font-weight:600;flex-wrap:wrap}
+  .height-badge{background:#fff;color:var(--blue);border-radius:6px;padding:3px 14px;font-size:1.15rem;font-weight:800}
+
+  /* STATUS DOTS */
+  .sdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;flex-shrink:0}
+  .sdot-active{background:var(--yellow);animation:pulse 1.2s infinite}
+  .sdot-waiting{background:var(--blue)}
+  .sdot-elim{background:var(--gray-300)}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(202,138,4,.25)}50%{box-shadow:0 0 0 6px rgba(202,138,4,.08)}}
+
+  /* ROW HIGHLIGHT */
+  tr.row-current td{background:#fffbeb!important}
+  tr.row-current{outline:2px solid var(--yellow);outline-offset:-1px}
+  tr.row-elim{opacity:.5}
+
+  /* PATH CELLS */
+  .pcell{display:flex;gap:2px;flex-wrap:wrap;justify-content:center}
+  .pcell span{width:20px;height:20px;border-radius:3px;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .po{background:var(--green-light);color:var(--green)}
+  .px{background:var(--red-light);color:var(--red)}
+  .pd{background:var(--orange-light);color:var(--orange)}
+
+  /* MODAL */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center}
+  .modal-overlay.open{display:flex}
+  .modal{background:#fff;border-radius:var(--radius-lg);padding:28px;max-width:640px;width:95%;max-height:93vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:slideUp .2s ease}
+  @keyframes slideUp{from{transform:translateY(18px);opacity:0}to{transform:none;opacity:1}}
+  .modal-title{font-size:1.1rem;font-weight:700;color:var(--blue);margin-bottom:16px}
+  .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+
+  /* SECTION SEP */
+  .sep{display:flex;align-items:center;gap:10px;margin:16px 0 12px}
+  .sep span{color:var(--gray-500);font-size:.82rem;font-weight:600;white-space:nowrap}
+  .sep::before,.sep::after{content:'';flex:1;height:1px;background:var(--gray-200)}
+
+  /* ATHLETE INPUT BLOCK */
+  .ath-block{border:1.5px solid var(--gray-200);border-radius:10px;padding:13px 15px;margin-bottom:9px;background:var(--gray-50);transition:border-color .15s}
+  .ath-block:hover{border-color:var(--blue-mid)}
+  .ath-block-head{font-size:.75rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+  .btn-rm{background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:.95rem;padding:1px 5px;border-radius:4px;transition:all .15s}
+  .btn-rm:hover{color:var(--red);background:var(--red-light)}
+
+  /* TABS */
+  .tabs2{display:flex;gap:2px;background:var(--gray-100);border-radius:8px;padding:3px;margin-bottom:18px}
+  .tab2{padding:7px 16px;border-radius:6px;border:none;background:none;cursor:pointer;font-size:.88rem;font-weight:600;color:var(--gray-600);transition:all .15s}
+  .tab2.active{background:#fff;color:var(--blue);box-shadow:var(--shadow-sm)}
+
+  /* COMP LIST */
+  .comp-list-wrap{display:flex;flex-direction:column;gap:9px}
+  .comp-item{border:1px solid var(--gray-200);border-radius:10px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;transition:all .15s;background:#fff}
+  .comp-item:hover{border-color:var(--blue);box-shadow:var(--shadow)}
+
+  /* ALERT */
+  .alert{padding:11px 14px;border-radius:8px;font-size:.88rem;margin-bottom:12px;display:flex;align-items:flex-start;gap:7px}
+  .alert-info{background:var(--blue-light);color:var(--blue);border:1px solid #c3d7fc}
+  .alert-success{background:var(--green-light);color:var(--green);border:1px solid #bbf7d0}
+
+  /* EMPTY */
+  .empty{text-align:center;padding:44px 20px;color:var(--gray-400)}
+  .empty .icon{font-size:2.8rem;margin-bottom:10px}
+
+  /* HELPERS */
+  .flex{display:flex}.gap-2{gap:8px}.gap-3{gap:12px}
+  .items-center{align-items:center}.justify-between{justify-content:space-between}.flex-wrap{flex-wrap:wrap}
+  .mb-3{margin-bottom:12px}.mb-4{margin-bottom:16px}.mt-3{margin-top:12px}
+  .text-sm{font-size:.83rem}.text-xs{font-size:.76rem}.text-gray{color:var(--gray-500)}.fw7{font-weight:700}
+  .order-pill{background:var(--blue);color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:.77rem;font-weight:700;flex-shrink:0}
+
+  /* RANK */
+  .rank-num{font-size:1.05rem;font-weight:800;color:var(--blue)}
+  .rank-1{color:#ca8a04}.rank-2{color:#64748b}.rank-3{color:#92400e}
+
+  @media(max-width:680px){.nav-brand{padding:0 14px;font-size:1rem}.nav-tab{padding:14px 12px;font-size:.82rem}.form-grid,.form-grid-3{grid-template-columns:1fr}}
+  @media print{nav,.no-print{display:none!important}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-brand"><span>🏅</span> PerchePro</div>
+    <div>
+      <button class="nav-tab active" onclick="showPage('training',this)">📊 Entraînements</button>
+      <button class="nav-tab" onclick="showPage('competition',this)">🏆 Concours</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════ ENTRAÎNEMENTS ═══════════════════════════ -->
+<div id="page-training" class="page active">
+<div class="container">
+  <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+    <div>
+      <div class="page-title">📊 Historique d'entraînements</div>
+      <div class="page-sub">Enregistre et visualise ta progression séance après séance</div>
+    </div>
+    <button class="btn btn-primary" onclick="openTrainingModal()">＋ Nouvelle séance</button>
+  </div>
+
+  <div id="charts-section" style="display:none">
+    <div class="card">
+      <div class="card-title">📈 Évolution de tes performances</div>
+      <div class="charts-grid">
+        <div class="chart-card"><div class="chart-title">🏆 Hauteur passée (cm)</div><div class="chart-wrap"><canvas id="chartHeight"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title">📍 Repère au sol (pieds)</div><div class="chart-wrap"><canvas id="chartGround"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title">✋ Prise de mains (nb mains)</div><div class="chart-wrap"><canvas id="chartGrip"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title">🎣 Perches utilisées</div><div class="chart-wrap"><canvas id="chartPole"></canvas></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📋 Séances enregistrées</div>
+    <div id="training-list">
+      <div class="empty"><div class="icon">🏃</div><p>Aucune séance enregistrée.<br>Clique sur <strong>+ Nouvelle séance</strong> pour commencer !</p></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════ CONCOURS ═══════════════════════════ -->
+<div id="page-competition" class="page">
+<div class="container">
+  <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+    <div>
+      <div class="page-title">🏆 Gestion des concours</div>
+      <div class="page-sub">Crée et gère tes concours de saut à la perche</div>
+    </div>
+    <button class="btn btn-primary" onclick="openNewCompModal()">＋ Nouveau concours</button>
+  </div>
+
+  <div class="tabs2">
+    <button class="tab2 active" onclick="showCompTab('list',this)">📋 Mes concours</button>
+    <button class="tab2" id="tab-active" onclick="showCompTab('active',this)" style="display:none">▶️ En cours</button>
+    <button class="tab2" id="tab-ranking" onclick="showCompTab('ranking',this)" style="display:none">🥇 Classement</button>
+  </div>
+
+  <div id="comp-tab-list"><div id="comp-list"><div class="empty"><div class="icon">🏟️</div><p>Aucun concours créé.</p></div></div></div>
+  <div id="comp-tab-active" style="display:none"><div id="active-comp-ui"></div></div>
+  <div id="comp-tab-ranking" style="display:none"><div id="ranking-ui"></div></div>
+</div>
+</div>
+
+<!-- ═══════════════════════════ MODALS ═══════════════════════════ -->
+
+<!-- Training modal -->
+<div class="modal-overlay" id="training-modal">
+  <div class="modal">
+    <div class="modal-title" id="t-modal-title">📝 Enregistrer une séance</div>
+
+    <div class="form-grid mb-3">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="t-date">
+      </div>
+      <div class="form-group">
+        <label>Perche utilisée</label>
+        <input type="text" id="t-pole" placeholder="ex: Skypole 4m20 / 70kg">
+      </div>
+    </div>
+
+    <div class="sep"><span>📍 Repère au sol</span></div>
+    <div class="form-grid-3 mb-3">
+      <div class="form-group">
+        <label>Distance de référence<span class="label-hint">(m)</span></label>
+        <div class="input-group">
+          <input type="number" id="t-ground-dist" placeholder="16" step="0.5">
+          <span class="addon">m</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Nombre de pieds</label>
+        <div class="input-group">
+          <input type="number" id="t-ground-feet" placeholder="ex: 3" step="0.5" min="0">
+          <span class="addon">pieds</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Sens du repère</label>
+        <select id="t-ground-dir">
+          <option value="avant">En avant (vers la zone)</option>
+          <option value="arrière">En arrière (loin de la zone)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="sep"><span>✋ Prise de mains</span></div>
+    <div class="form-grid mb-3">
+      <div class="form-group">
+        <label>Nombre de mains<span class="label-hint">(depuis le bas)</span></label>
+        <div class="input-group">
+          <input type="number" id="t-grip" placeholder="ex: 4" step="0.5" min="0">
+          <span class="addon">mains</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Précision<span class="label-hint">(optionnel)</span></label>
+        <input type="text" id="t-grip-note" placeholder="ex: main droite à mi-main">
+      </div>
+    </div>
+
+    <div class="sep"><span>🏆 Hauteurs</span></div>
+    <div class="form-grid mb-3">
+      <div class="form-group">
+        <label>Avec contact<span class="label-hint">(cm)</span></label>
+        <div class="input-group">
+          <input type="number" id="t-height-touch" placeholder="ex: 340">
+          <span class="addon">cm</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Sans toucher<span class="label-hint">(cm)</span></label>
+        <div class="input-group">
+          <input type="number" id="t-height-clean" placeholder="ex: 330">
+          <span class="addon">cm</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sep"><span>💬 Notes</span></div>
+    <div class="form-group mb-3">
+      <label>Commentaire 1</label>
+      <textarea id="t-comment1" placeholder="Ressenti, point positif, axe de travail..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Commentaire 2<span class="label-hint">(optionnel)</span></label>
+      <textarea id="t-comment2" placeholder="..."></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('training-modal')">Annuler</button>
+      <button class="btn btn-primary" id="t-save-btn" onclick="saveTraining()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- New competition modal -->
+<div class="modal-overlay" id="new-comp-modal">
+  <div class="modal">
+    <div class="modal-title">🏆 Nouveau concours</div>
+    <div class="form-grid mb-3">
+      <div class="form-group">
+        <label>Nom du concours</label>
+        <input type="text" id="comp-name" placeholder="ex: Challenge de printemps">
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="comp-date">
+      </div>
+      <div class="form-group">
+        <label>Lieu</label>
+        <input type="text" id="comp-place" placeholder="ex: Stade municipal">
+      </div>
+      <div class="form-group">
+        <label>Hauteur de départ<span class="label-hint">(cm)</span></label>
+        <input type="number" id="comp-start-h" value="300">
+      </div>
+      <div class="form-group">
+        <label>Incrément standard<span class="label-hint">(cm)</span></label>
+        <input type="number" id="comp-step" value="10">
+      </div>
+    </div>
+
+    <div class="sep"><span>👥 Athlètes — ordre de passage</span></div>
+    <div id="athletes-inputs"></div>
+    <button class="btn btn-secondary btn-sm mt-3" onclick="addAthleteInput()">＋ Ajouter un athlète</button>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('new-comp-modal')">Annuler</button>
+      <button class="btn btn-primary" onclick="createCompetition()">Créer le concours</button>
+    </div>
+  </div>
+</div>
+
+<!-- Attempt modal -->
+<div class="modal-overlay" id="attempt-modal">
+  <div class="modal" style="max-width:430px">
+    <div class="modal-title">🎯 <span id="ath-name-modal"></span></div>
+    <div class="alert alert-info" id="attempt-info"></div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <button class="btn btn-success" onclick="recordAttempt('success')">✅ Réussi — Barre passée !</button>
+      <button class="btn btn-danger" onclick="recordAttempt('fail')">❌ Échec</button>
+      <button class="btn btn-warning" id="btn-skip" onclick="recordAttempt('skip')">⏭️ Impasse — reporter à la prochaine hauteur</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('attempt-modal')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- Next height modal -->
+<div class="modal-overlay" id="next-height-modal">
+  <div class="modal" style="max-width:370px">
+    <div class="modal-title">📏 Prochaine hauteur</div>
+    <div class="form-group">
+      <label>Hauteur suivante (cm)</label>
+      <input type="number" id="next-height-val">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('next-height-modal')">Annuler</button>
+      <button class="btn btn-primary" onclick="confirmNextHeight()">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════ STATE ════
+let trainings = JSON.parse(localStorage.getItem('pp_trainings') || '[]');
+let competitions = JSON.parse(localStorage.getItem('pp_competitions') || '[]');
+let activeCompIdx = null;
+let _editIdx = null;
+let _attemptOrder = null;
+let _athCount = 0;
+let charts = {};
+
+// ════ NAV ════
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'training') renderTrainings();
+  if (name === 'competition') renderCompList();
+}
+
+function showCompTab(tab, btn) {
+  ['list','active','ranking'].forEach(t => document.getElementById('comp-tab-'+t).style.display='none');
+  document.querySelectorAll('.tab2').forEach(t => t.classList.remove('active'));
+  document.getElementById('comp-tab-'+tab).style.display='block';
+  if (btn) btn.classList.add('active');
+  if (tab === 'active') renderActiveComp();
+  if (tab === 'ranking') renderRanking();
+}
+
+// ════ MODALS ════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ════ TRAINING ════
+function openTrainingModal(editIdx) {
+  _editIdx = editIdx !== undefined ? editIdx : null;
+  const isEdit = _editIdx !== null;
+  document.getElementById('t-modal-title').textContent = isEdit ? '✏️ Modifier la séance' : '📝 Enregistrer une séance';
+  document.getElementById('t-save-btn').textContent = isEdit ? 'Enregistrer les modifications' : 'Enregistrer';
+
+  if (isEdit) {
+    const t = trainings[_editIdx];
+    document.getElementById('t-date').value = t.date || '';
+    document.getElementById('t-pole').value = t.pole || '';
+    document.getElementById('t-ground-dist').value = t.groundDist || '16';
+    document.getElementById('t-ground-feet').value = t.groundFeet || '';
+    document.getElementById('t-ground-dir').value = t.groundDir || 'avant';
+    document.getElementById('t-grip').value = t.grip || '';
+    document.getElementById('t-grip-note').value = t.gripNote || '';
+    document.getElementById('t-height-touch').value = t.heightTouch || '';
+    document.getElementById('t-height-clean').value = t.heightClean || '';
+    document.getElementById('t-comment1').value = t.c1 || '';
+    document.getElementById('t-comment2').value = t.c2 || '';
+  } else {
+    document.getElementById('t-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('t-ground-dist').value = '16';
+    document.getElementById('t-ground-dir').value = 'avant';
+    ['t-pole','t-ground-feet','t-grip','t-grip-note','t-height-touch','t-height-clean','t-comment1','t-comment2'].forEach(id => document.getElementById(id).value='');
+  }
+  openModal('training-modal');
+}
+
+function saveTraining() {
+  const date = document.getElementById('t-date').value;
+  if (!date) { alert('Merci de renseigner la date.'); return; }
+  const entry = {
+    date,
+    pole: document.getElementById('t-pole').value.trim(),
+    groundDist: document.getElementById('t-ground-dist').value || '16',
+    groundFeet: document.getElementById('t-ground-feet').value || null,
+    groundDir: document.getElementById('t-ground-dir').value,
+    grip: document.getElementById('t-grip').value || null,
+    gripNote: document.getElementById('t-grip-note').value.trim(),
+    heightTouch: document.getElementById('t-height-touch').value || null,
+    heightClean: document.getElementById('t-height-clean').value || null,
+    c1: document.getElementById('t-comment1').value.trim(),
+    c2: document.getElementById('t-comment2').value.trim(),
+  };
+  if (_editIdx !== null) {
+    trainings[_editIdx] = entry;
+  } else {
+    trainings.unshift(entry);
+  }
+  save();
+  closeModal('training-modal');
+  renderTrainings();
+}
+
+function deleteTraining(idx) {
+  if (!confirm('Supprimer cette séance ?')) return;
+  trainings.splice(idx, 1);
+  save();
+  renderTrainings();
+}
+
+function renderTrainings() {
+  const el = document.getElementById('training-list');
+  if (!trainings.length) {
+    el.innerHTML = `<div class="empty"><div class="icon">🏃</div><p>Aucune séance enregistrée.<br>Clique sur <strong>+ Nouvelle séance</strong> pour commencer !</p></div>`;
+    document.getElementById('charts-section').style.display = 'none';
+    return;
+  }
+  document.getElementById('charts-section').style.display = 'block';
+  renderCharts();
+  el.innerHTML = `
+    <div class="table-wrap"><table>
+      <thead><tr>
+        <th>Date</th><th>Perche</th><th>Repère sol</th><th>Prise mains</th>
+        <th>Haut. (contact)</th><th>Haut. (propre)</th><th>Notes</th><th></th>
+      </tr></thead>
+      <tbody>
+      ${trainings.map((t,i) => {
+        const groundLabel = t.groundFeet
+          ? `<strong>${t.groundFeet} pieds</strong><br><span class="text-xs text-gray">${t.groundDir||''} / ref ${t.groundDist||16}m</span>`
+          : '<span class="text-gray">—</span>';
+        const gripLabel = t.grip
+          ? `<strong>${t.grip} mains</strong>${t.gripNote ? `<br><span class="text-xs text-gray">${esc(t.gripNote)}</span>` : ''}`
+          : '<span class="text-gray">—</span>';
+        return `<tr>
+          <td class="fw7">${fmtDate(t.date)}</td>
+          <td class="text-sm">${t.pole ? esc(t.pole) : '<span class="text-gray">—</span>'}</td>
+          <td>${groundLabel}</td>
+          <td>${gripLabel}</td>
+          <td>${t.heightTouch ? `<span class="badge badge-orange">${t.heightTouch} cm</span>` : '<span class="text-gray">—</span>'}</td>
+          <td>${t.heightClean ? `<span class="badge badge-green">${t.heightClean} cm</span>` : '<span class="text-gray">—</span>'}</td>
+          <td style="max-width:180px">
+            ${t.c1 ? `<div class="text-sm">💬 ${esc(t.c1)}</div>` : ''}
+            ${t.c2 ? `<div class="text-sm text-gray">💬 ${esc(t.c2)}</div>` : ''}
+          </td>
+          <td>
+            <div class="flex gap-2">
+              <button class="btn btn-secondary btn-sm btn-icon" onclick="openTrainingModal(${i})" title="Modifier">✏️</button>
+              <button class="btn btn-danger btn-sm btn-icon" onclick="deleteTraining(${i})" title="Supprimer">🗑</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('')}
+      </tbody>
+    </table></div>`;
+}
+
+function renderCharts() {
+  const sorted = [...trainings].sort((a,b) => a.date.localeCompare(b.date));
+  const labels = sorted.map(t => fmtDate(t.date));
+  const co = (legend) => ({
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:legend,labels:{font:{size:10}}}},
+    scales:{x:{ticks:{font:{size:9},maxRotation:35}},y:{ticks:{font:{size:10}},beginAtZero:false}}
+  });
+
+  // Hauteurs
+  if (charts.h) charts.h.destroy();
+  charts.h = new Chart(document.getElementById('chartHeight').getContext('2d'), {
+    type:'line', data:{labels, datasets:[
+      {label:'Sans contact (cm)', data:sorted.map(t=>t.heightClean?+t.heightClean:null), borderColor:'#16a34a', backgroundColor:'#16a34a22', tension:.3, fill:false, pointRadius:5, spanGaps:true},
+      {label:'Avec contact (cm)', data:sorted.map(t=>t.heightTouch?+t.heightTouch:null), borderColor:'#ea580c', backgroundColor:'#ea580c22', tension:.3, fill:false, pointRadius:5, spanGaps:true, borderDash:[5,4]},
+    ]}, options:co(true)
+  });
+
+  // Sol
+  if (charts.g) charts.g.destroy();
+  charts.g = new Chart(document.getElementById('chartGround').getContext('2d'), {
+    type:'line', data:{labels, datasets:[{label:'Pieds', data:sorted.map(t=>t.groundFeet?+t.groundFeet:null), borderColor:'#1a56db', backgroundColor:'#1a56db22', tension:.3, fill:true, pointRadius:5, spanGaps:true}]},
+    options:co(false)
+  });
+
+  // Prise
+  if (charts.p) charts.p.destroy();
+  charts.p = new Chart(document.getElementById('chartGrip').getContext('2d'), {
+    type:'line', data:{labels, datasets:[{label:'Mains', data:sorted.map(t=>t.grip?+t.grip:null), borderColor:'#7c3aed', backgroundColor:'#7c3aed22', tension:.3, fill:true, pointRadius:5, spanGaps:true}]},
+    options:co(false)
+  });
+
+  // Perches
+  const poles = {}; sorted.forEach(t=>{ if(t.pole) poles[t.pole]=(poles[t.pole]||0)+1; });
+  if (charts.pole) charts.pole.destroy();
+  charts.pole = new Chart(document.getElementById('chartPole').getContext('2d'), {
+    type:'bar', data:{labels:Object.keys(poles), datasets:[{label:'Utilisations', data:Object.values(poles), backgroundColor:'#1a56db88', borderColor:'#1a56db', borderWidth:2, borderRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:8},maxRotation:40}},y:{ticks:{stepSize:1}}}}
+  });
+}
+
+// ════ COMPETITION ════
+function addAthleteInput(data) {
+  _athCount++;
+  const c = document.getElementById('athletes-inputs');
+  const div = document.createElement('div');
+  div.className = 'ath-block';
+  div.innerHTML = `
+    <div class="ath-block-head">
+      <span>Athlète n°${_athCount}</span>
+      <button class="btn-rm" onclick="this.closest('.ath-block').remove()" title="Retirer">✕</button>
+    </div>
+    <div class="form-grid-3">
+      <div class="form-group" style="grid-column:span 2">
+        <label>Prénom *</label>
+        <input type="text" class="ath-first" placeholder="Prénom" value="${esc(data?.first||'')}">
+      </div>
+      <div class="form-group">
+        <label>Nom</label>
+        <input type="text" class="ath-last" placeholder="Nom" value="${esc(data?.last||'')}">
+      </div>
+      <div class="form-group">
+        <label>N° licence</label>
+        <input type="text" class="ath-lic" placeholder="12345678" value="${esc(data?.license||'')}">
+      </div>
+      <div class="form-group" style="grid-column:span 2">
+        <label>Club</label>
+        <input type="text" class="ath-club" placeholder="Club" value="${esc(data?.club||'')}">
+      </div>
+    </div>`;
+  c.appendChild(div);
+}
+
+function openNewCompModal() {
+  _athCount = 0;
+  document.getElementById('athletes-inputs').innerHTML = '';
+  document.getElementById('comp-date').value = new Date().toISOString().split('T')[0];
+  ['comp-name','comp-place'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('comp-start-h').value = '300';
+  document.getElementById('comp-step').value = '10';
+  addAthleteInput(); addAthleteInput();
+  openModal('new-comp-modal');
+}
+
+function createCompetition() {
+  const name = document.getElementById('comp-name').value.trim();
+  if (!name) { alert('Merci de donner un nom au concours.'); return; }
+  const date = document.getElementById('comp-date').value;
+  const place = document.getElementById('comp-place').value.trim();
+  const startH = parseInt(document.getElementById('comp-start-h').value) || 300;
+  const step = parseInt(document.getElementById('comp-step').value) || 10;
+
+  const athletes = [];
+  document.querySelectorAll('#athletes-inputs .ath-block').forEach(row => {
+    const first = row.querySelector('.ath-first').value.trim();
+    if (!first) return;
+    athletes.push({
+      first, last:row.querySelector('.ath-last').value.trim(),
+      license:row.querySelector('.ath-lic').value.trim(),
+      club:row.querySelector('.ath-club').value.trim(),
+      attempts:{}, bestHeight:null, eliminated:false,
+      remainingAttempts:3, skippedFrom:null, order:athletes.length
+    });
+  });
+  if (!athletes.length) { alert('Ajoute au moins un athlète.'); return; }
+
+  const comp = { id:Date.now(), name, date, place, currentHeight:startH, step, heights:[startH], athletes, finished:false };
+  comp.athletes.forEach(a => { a.attempts[startH]=[]; });
+  competitions.push(comp);
+  save();
+  closeModal('new-comp-modal');
+  activeCompIdx = competitions.length - 1;
+  renderCompList();
+  loadComp(activeCompIdx);
+}
+
+function renderCompList() {
+  const el = document.getElementById('comp-list');
+  if (!competitions.length) { el.innerHTML=`<div class="empty"><div class="icon">🏟️</div><p>Aucun concours créé.</p></div>`; return; }
+  el.innerHTML = `<div class="comp-list-wrap">${competitions.map((c,i) => `
+    <div class="comp-item" onclick="loadComp(${i})">
+      <div>
+        <div style="font-weight:700;font-size:.97rem">${esc(c.name)}</div>
+        <div class="text-sm text-gray">📅 ${fmtDate(c.date)} ${c.place?'• 📍 '+esc(c.place):''} • ${c.athletes.length} athlète(s) • Départ : ${c.heights[0]} cm</div>
+      </div>
+      <div class="flex gap-2 items-center">
+        <span class="badge ${c.finished?'badge-gray':'badge-blue'}">${c.finished?'Terminé':'En cours'}</span>
+        <button class="btn btn-danger btn-sm btn-icon" onclick="event.stopPropagation();deleteComp(${i})">🗑</button>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function loadComp(idx) {
+  activeCompIdx = idx;
+  document.getElementById('tab-active').style.display='';
+  document.getElementById('tab-ranking').style.display='';
+  ['list','active','ranking'].forEach(t => document.getElementById('comp-tab-'+t).style.display='none');
+  document.getElementById('comp-tab-active').style.display='block';
+  document.querySelectorAll('.tab2').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-active').classList.add('active');
+  renderActiveComp();
+}
+
+function deleteComp(idx) {
+  if (!confirm('Supprimer ce concours ?')) return;
+  competitions.splice(idx,1);
+  if (activeCompIdx===idx) activeCompIdx=null;
+  save(); renderCompList();
+}
+
+// ════ ACTIVE COMP ════
+function getStatus(ath, comp) {
+  if (ath.eliminated) return 'eliminated';
+  const atts = ath.attempts[comp.currentHeight] || [];
+  if (atts.includes('success') || atts.some(a=>a==='skip')) return 'waiting';
+  return 'active';
+}
+
+function renderActiveComp() {
+  const comp = competitions[activeCompIdx];
+  if (!comp) { document.getElementById('active-comp-ui').innerHTML='<div class="alert alert-info">Sélectionne un concours dans la liste.</div>'; return; }
+
+  const h = comp.currentHeight;
+  const notElim = comp.athletes.filter(a=>!a.eliminated);
+  const waiting = notElim.filter(a=>getStatus(a,comp)==='waiting');
+  const active = notElim.filter(a=>getStatus(a,comp)==='active');
+
+  let html = `
+    <div class="comp-header">
+      <div>
+        <h2>${esc(comp.name)}</h2>
+        <div class="comp-meta">📅 ${fmtDate(comp.date)}${comp.place?' • 📍 '+esc(comp.place):''}</div>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        ${!comp.finished?`<button class="btn btn-secondary btn-sm" onclick="promptNextHeight()">📏 Hauteur suivante</button>`:''}
+        <button class="btn btn-secondary btn-sm" onclick="switchToRanking()">🥇 Classement</button>
+        <button class="btn btn-primary btn-sm" onclick="exportPDF()">⬇️ PDF</button>
+      </div>
+    </div>
+    ${comp.finished?'<div class="alert alert-success">🎉 Concours terminé ! Consulte le classement.</div>':''}
+    <div class="height-bar">
+      <span>Hauteur en jeu :</span>
+      <span class="height-badge">${h} cm</span>
+      <span style="opacity:.8;font-size:.83rem">${notElim.length} en jeu · <strong>${waiting.length}</strong> en attente · <strong>${active.length}</strong> à saisir</span>
+    </div>
+    <div class="card">
+      <div class="card-title">👥 Feuille de concours — Ordre de passage</div>
+      <div class="table-wrap"><table class="athletes-table">
+        <thead><tr>
+          <th>#</th><th>Athlète</th><th>Club</th>
+          ${comp.heights.map(hh=>`<th style="text-align:center;min-width:55px">${hh}<br><span style="font-size:.68rem;opacity:.8">cm</span></th>`).join('')}
+          <th style="text-align:center">Essais</th><th>Statut</th><th>Action</th>
+        </tr></thead>
+        <tbody>
+        ${comp.athletes.slice().sort((a,b)=>a.order-b.order).map(ath => {
+          const st = getStatus(ath, comp);
+          let rowCls = '';
+          let badge = '';
+          if (st==='eliminated') {
+            rowCls='row-elim';
+            badge=`<span class="badge badge-gray"><span class="sdot sdot-elim"></span>Éliminé</span>`;
+          } else if (st==='waiting') {
+            badge=`<span class="badge badge-blue"><span class="sdot sdot-waiting"></span>En attente</span>`;
+          } else {
+            rowCls='row-current';
+            badge=`<span class="badge badge-yellow" style="background:var(--yellow-light);color:var(--yellow)"><span class="sdot sdot-active"></span>En jeu</span>`;
+          }
+          const canAct = !ath.eliminated && !comp.finished && st==='active' && ath.remainingAttempts>0;
+          return `
+          <tr class="${rowCls}">
+            <td><span class="order-pill">${ath.order+1}</span></td>
+            <td>
+              <strong>${esc(ath.first)}</strong>${ath.last?' '+esc(ath.last):''}
+              ${ath.license?`<br><span class="text-xs text-gray">${esc(ath.license)}</span>`:''}
+            </td>
+            <td class="text-sm text-gray">${esc(ath.club||'—')}</td>
+            ${comp.heights.map(hh=>{
+              const atts=ath.attempts[hh]||[];
+              return `<td style="text-align:center"><div class="pcell">${
+                atts.length ? atts.map(a=>`<span class="${a==='success'?'po':a==='fail'?'px':'pd'}">${a==='success'?'O':a==='fail'?'X':'—'}</span>`).join('') : '<span style="color:var(--gray-300);font-size:.75rem">·</span>'
+              }</div></td>`;
+            }).join('')}
+            <td style="text-align:center;font-weight:700">${ath.eliminated?'<span class="text-gray">—</span>':ath.remainingAttempts}</td>
+            <td>${badge}</td>
+            <td>${canAct?`<button class="btn btn-primary btn-sm" onclick="openAttemptModal(${ath.order})">▶ Saisir</button>`:''}</td>
+          </tr>`;
+        }).join('')}
+        </tbody>
+      </table></div>
+    </div>`;
+  document.getElementById('active-comp-ui').innerHTML = html;
+}
+
+function switchToRanking() {
+  ['list','active','ranking'].forEach(t=>document.getElementById('comp-tab-'+t).style.display='none');
+  document.getElementById('comp-tab-ranking').style.display='block';
+  document.querySelectorAll('.tab2').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-ranking').classList.add('active');
+  renderRanking();
+}
+
+function openAttemptModal(athOrder) {
+  const comp = competitions[activeCompIdx];
+  const ath = comp.athletes.find(a=>a.order===athOrder);
+  _attemptOrder = athOrder;
+  const atts = ath.attempts[comp.currentHeight]||[];
+  const fails = atts.filter(x=>x==='fail').length;
+  const canSkip = ath.remainingAttempts>0 && !atts.includes('skip');
+  document.getElementById('ath-name-modal').textContent = `${ath.first}${ath.last?' '+ath.last:''}`;
+  document.getElementById('attempt-info').innerHTML =
+    `<strong>Hauteur :</strong> ${comp.currentHeight} cm &nbsp;|&nbsp; <strong>Essai n°${atts.length+1}</strong> &nbsp;|&nbsp; ${ath.remainingAttempts} essai(s) restant(s)`+
+    (fails>0?`<br>⚠️ ${fails} échec(s) à cette hauteur`:'');
+  document.getElementById('btn-skip').style.display = canSkip?'':'none';
+  openModal('attempt-modal');
+}
+
+function recordAttempt(result) {
+  const comp = competitions[activeCompIdx];
+  const ath = comp.athletes.find(a=>a.order===_attemptOrder);
+  const h = comp.currentHeight;
+  if (!ath.attempts[h]) ath.attempts[h]=[];
+
+  if (result==='success') {
+    ath.attempts[h].push('success');
+    ath.bestHeight=h;
+    ath.remainingAttempts=3;
+    // → status becomes 'waiting' automatically (atts.includes('success'))
+  } else if (result==='fail') {
+    ath.attempts[h].push('fail');
+    ath.remainingAttempts--;
+    if (ath.remainingAttempts===0) ath.eliminated=true;
+  } else if (result==='skip') {
+    // impasse: push skip marker → athlete immediately becomes 'waiting'
+    ath.attempts[h].push('skip');
+    ath.skippedFrom=h;
+    // remainingAttempts conserved for next height
+  }
+
+  if (comp.athletes.filter(a=>!a.eliminated).length===0) comp.finished=true;
+  save();
+  closeModal('attempt-modal');
+  renderActiveComp();
+}
+
+function promptNextHeight() {
+  const comp = competitions[activeCompIdx];
+  document.getElementById('next-height-val').value = comp.currentHeight + comp.step;
+  openModal('next-height-modal');
+}
+
+function confirmNextHeight() {
+  const comp = competitions[activeCompIdx];
+  const newH = parseInt(document.getElementById('next-height-val').value);
+  if (!newH || newH<=comp.currentHeight) { alert('La hauteur doit être supérieure à l\'actuelle.'); return; }
+  const prevH = comp.currentHeight;
+  comp.currentHeight=newH;
+  if (!comp.heights.includes(newH)) comp.heights.push(newH);
+  comp.athletes.forEach(a=>{
+    if (!a.eliminated) {
+      a.attempts[newH]=[];
+      if (a.skippedFrom===prevH) {
+        a.skippedFrom=null; // carry remainingAttempts as-is
+      } else if (a.attempts[prevH] && a.attempts[prevH].includes('success')) {
+        a.remainingAttempts=3; // fresh reset
+      }
+    }
+  });
+  save(); closeModal('next-height-modal'); renderActiveComp();
+}
+
+// ════ RANKING ════
+function renderRanking() {
+  const comp = competitions[activeCompIdx];
+  if (!comp) { document.getElementById('ranking-ui').innerHTML='<div class="alert alert-info">Sélectionne un concours.</div>'; return; }
+  const ranked = buildRanking(comp);
+  document.getElementById('ranking-ui').innerHTML = `
+    <div class="card">
+      <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+        <div class="card-title">🥇 Classement — ${esc(comp.name)}</div>
+        <button class="btn btn-primary btn-sm" onclick="exportPDF()">⬇️ Exporter en PDF</button>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Athlète</th><th>Club</th><th>Licence</th><th>Meilleure hauteur</th>
+        ${comp.heights.map(h=>`<th style="text-align:center">${h} cm</th>`).join('')}
+        <th style="text-align:center">Échecs</th></tr></thead>
+        <tbody>
+        ${ranked.map((r,i)=>`<tr>
+          <td><span class="rank-num ${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''}">${r.rank}${i<3?['🥇','🥈','🥉'][i]:''}</span></td>
+          <td><strong>${esc(r.ath.first)}</strong>${r.ath.last?' '+esc(r.ath.last):''}</td>
+          <td>${esc(r.ath.club||'—')}</td>
+          <td class="text-xs text-gray">${esc(r.ath.license||'—')}</td>
+          <td>${r.ath.bestHeight?`<span class="badge badge-blue">${r.ath.bestHeight} cm</span>`:'<span class="text-gray">—</span>'}</td>
+          ${comp.heights.map(h=>{const atts=r.ath.attempts[h]||[];return`<td style="text-align:center"><div class="pcell">${atts.map(a=>`<span class="${a==='success'?'po':a==='fail'?'px':'pd'}">${a==='success'?'O':a==='fail'?'X':'—'}</span>`).join('')}</div></td>`;}).join('')}
+          <td style="text-align:center;font-weight:700">${totalFails(r.ath,comp)}</td>
+        </tr>`).join('')}
+        </tbody>
+      </table></div>
+    </div>`;
+}
+
+function buildRanking(comp) {
+  const sorted = [...comp.athletes].sort((a,b)=>{
+    const hA=a.bestHeight||0, hB=b.bestHeight||0;
+    if (hB!==hA) return hB-hA;
+    const fA=totalFails(a,comp), fB=totalFails(b,comp);
+    if (fA!==fB) return fA-fB;
+    return a.order-b.order;
+  });
+  let rank=1;
+  return sorted.map((ath,i)=>{
+    if(i>0){const p=sorted[i-1];if((ath.bestHeight||0)!==(p.bestHeight||0)||totalFails(ath,comp)!==totalFails(p,comp))rank=i+1;}
+    return {ath,rank};
+  });
+}
+
+function totalFails(ath,comp){
+  return comp.heights.reduce((s,h)=>s+(ath.attempts[h]||[]).filter(a=>a==='fail').length,0);
+}
+
+// ════ PDF ════
+function exportPDF() {
+  const comp = competitions[activeCompIdx];
+  if (!comp) return;
+  const ranked = buildRanking(comp);
+  const win = window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Classement — ${esc(comp.name)}</title>
+  <style>
+    body{font-family:Arial,sans-serif;max-width:960px;margin:0 auto;padding:22px;font-size:11.5px;color:#1e293b}
+    h1{color:#1a56db;font-size:19px;margin-bottom:3px}
+    .meta{color:#64748b;margin-bottom:22px;font-size:10.5px}
+    table{width:100%;border-collapse:collapse;margin-top:8px;font-size:10.5px}
+    th{background:#1a56db;color:#fff;padding:6px 9px;text-align:left}
+    td{padding:5px 9px;border-bottom:1px solid #e2e8f0;vertical-align:middle}
+    tr:nth-child(even) td{background:#f8fafc}
+    .rk{font-weight:800;font-size:13px;color:#1a56db}
+    .po{color:#16a34a;font-weight:700}.px{color:#dc2626;font-weight:700}.pd{color:#ea580c;font-weight:700}
+    h2{color:#1a56db;margin-top:26px;font-size:13px;border-bottom:2px solid #1a56db;padding-bottom:3px}
+    .parco{margin-bottom:14px;page-break-inside:avoid}
+    @media print{button{display:none}body{padding:10px}}
+  </style></head><body>
+  <button onclick="window.print()" style="background:#1a56db;color:#fff;padding:7px 16px;border:none;border-radius:6px;cursor:pointer;margin-bottom:16px;font-size:12px">🖨️ Imprimer / Enregistrer en PDF</button>
+  <h1>🏅 ${esc(comp.name)}</h1>
+  <div class="meta">📅 ${fmtDate(comp.date)}${comp.place?' &nbsp;•&nbsp; 📍 '+esc(comp.place):''} &nbsp;•&nbsp; ${comp.athletes.length} athlète(s) &nbsp;•&nbsp; Départ : ${comp.heights[0]} cm</div>
+  <h2>🥇 Classement final</h2>
+  <table><thead><tr><th>#</th><th>Athlète</th><th>Club</th><th>Licence</th><th>Meilleure hauteur</th>
+  ${comp.heights.map(h=>`<th style="text-align:center">${h} cm</th>`).join('')}<th style="text-align:center">Échecs</th></tr></thead>
+  <tbody>${ranked.map((r,i)=>`<tr>
+    <td class="rk">${r.rank}${i===0?' 🥇':i===1?' 🥈':i===2?' 🥉':''}</td>
+    <td><strong>${esc(r.ath.first)} ${esc(r.ath.last||'')}</strong></td>
+    <td>${esc(r.ath.club||'—')}</td><td>${esc(r.ath.license||'—')}</td>
+    <td><strong>${r.ath.bestHeight?r.ath.bestHeight+' cm':'—'}</strong></td>
+    ${comp.heights.map(h=>{const atts=r.ath.attempts[h]||[];return`<td style="text-align:center">${atts.map(a=>`<span class="${a==='success'?'po':a==='fail'?'px':'pd'}">${a==='success'?'O':a==='fail'?'X':'—'}</span>`).join(' ')}</td>`;}).join('')}
+    <td style="text-align:center"><strong>${totalFails(r.ath,comp)}</strong></td>
+  </tr>`).join('')}</tbody></table>
+  <h2>📋 Parcours individuels</h2>
+  ${ranked.map(r=>`<div class="parco">
+    <strong>${esc(r.ath.first)} ${esc(r.ath.last||'')}</strong>
+    ${r.ath.club?`<span style="color:#64748b"> — ${esc(r.ath.club)}</span>`:''}
+    ${r.ath.license?`<span style="color:#94a3b8;font-size:9.5px"> | N° ${esc(r.ath.license)}</span>`:''}
+    <br><span style="color:#1a56db;font-weight:700">Classé ${r.rank}${r.rank===1?'er':'ème'} — Meilleure hauteur : ${r.ath.bestHeight?r.ath.bestHeight+' cm':'—'} — ${totalFails(r.ath,comp)} échec(s) au total</span>
+    <table style="margin-top:5px;width:auto"><thead><tr><th>Hauteur</th><th>Essais</th><th>Résultat</th></tr></thead>
+    <tbody>${comp.heights.filter(h=>r.ath.attempts[h]&&r.ath.attempts[h].length).map(h=>{
+      const atts=r.ath.attempts[h]||[];
+      const res=atts.includes('success')?'✅ Réussi':atts.some(a=>a==='skip')?'⏭️ Impasse':'❌ Éliminé à cette hauteur';
+      return`<tr><td>${h} cm</td><td>${atts.map(a=>a==='success'?'O':a==='fail'?'X':'—').join(' ')}</td><td>${res}</td></tr>`;
+    }).join('')}</tbody></table>
+  </div>`).join('')}
+  </body></html>`);
+  win.document.close();
+}
+
+// ════ UTILS ════
+function fmtDate(d){if(!d)return'—';const[y,m,day]=d.split('-');return`${day}/${m}/${y}`;}
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function save(){localStorage.setItem('pp_trainings',JSON.stringify(trainings));localStorage.setItem('pp_competitions',JSON.stringify(competitions));}
+
+// INIT
+renderTrainings();
+renderCompList();
+</script>
+</body>
+</html>
